@@ -1,5 +1,5 @@
 #######################################
-# Syntax Coloring Map For J1850-PWM-Transceiver-Library
+# Syntax Coloring Map For J1850-Arduino-Transceiver-Library
 #######################################
 
 #######################################
