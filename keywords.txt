@@ -1,0 +1,42 @@
+#######################################
+# Syntax Coloring Map For J1850-PWM-Transceiver-Library
+#######################################
+
+#######################################
+# Datatypes (KEYWORD1)
+#######################################
+
+Decoder	KEYWORD1
+Encoder	KEYWORD1
+Transceiver	KEYWORD1
+PwmDecoder	KEYWORD1
+PwmEncoder	KEYWORD1
+PwmTransceiver	KEYWORD1
+
+#######################################
+# Methods and Functions (KEYWORD2)
+#######################################
+
+setRxPin	KEYWORD2
+getRxPin	KEYWORD2
+begin	KEYWORD2
+isrPwmDecoder	KEYWORD2
+receive	KEYWORD2
+isReceiving	KEYWORD2
+available	KEYWORD2
+readString	KEYWORD2
+flagDecoder	KEYWORD2
+timeOld	KEYWORD2
+setTxPin	KEYWORD2
+setEnablePin	KEYWORD2
+setTxRxModePin	KEYWORD2
+getTxPin	KEYWORD2
+powerDown	KEYWORD2
+powerUp	KEYWORD2
+enableTxMode	KEYWORD2
+enableRxMode	KEYWORD2
+println	KEYWORD2
+print	KEYWORD2
+send	KEYWORD2
+setLogic	KEYWORD2
+CRC8 	KEYWORD2
