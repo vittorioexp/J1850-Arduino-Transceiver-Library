@@ -8,7 +8,7 @@
 #include <Arduino.h>
 #include "avr/interrupt.h"
 
-#define BUFFER_SIZE			1526
+#define BUFFER_SIZE			64
 
 class PwmTransceiver 
 {
