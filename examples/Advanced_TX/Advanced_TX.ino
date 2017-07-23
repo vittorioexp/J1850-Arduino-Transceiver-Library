@@ -4,6 +4,7 @@
 
   J1850-Arduino-Transceiver-Library
 */
+#define EI_ARDUINO_INTERRUPTED_PIN
 #include <EnableInterrupt.h>
 #include <PwmTransceiver.h>
 
