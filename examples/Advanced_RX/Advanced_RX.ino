@@ -4,10 +4,9 @@
 
   J1850-Arduino-Transceiver-Library
 */
+#include <EnableInterrupt.h>
 #include <PwmTransceiver.h>
 
-volatile bool PwmTransceiver::flagDecoder;
-volatile unsigned long PwmTransceiver::timeOld;
 const int rx_pin = 3;   // https://goo.gl/nHC95v
 const int tx_pin = 13;
 
@@ -20,10 +19,7 @@ void setup() {
 }
 
 void loop() {
-  while (Transceiver.isReceiving())
-  {
-    Transceiver.receive();
-  }
+  while (Transceiver.isReceiving());
   if (Transceiver.available()) {
     String str = Transceiver.readString();
     if (str.indexOf("##") != (-1) && str.indexOf(";;") != (-1)) {

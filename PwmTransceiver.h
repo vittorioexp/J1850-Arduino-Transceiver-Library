@@ -5,35 +5,19 @@
 	J1850-Arduino-Transceiver-Library
 */
 
+#define LIBCALL_ENABLEINTERRUPT
+#include <stdint.h>
 #include <Arduino.h>
-#include "avr/interrupt.h"
-
+#include <avr/io.h>
+#include <avr/interrupt.h>
+#include <TimerOne.h>
+#include <digitalWriteFast.h>
+#define EI_ARDUINO_INTERRUPTED_PIN
+#include <EnableInterrupt.h>
 #define BUFFER_SIZE			64
 
 class PwmTransceiver 
 {
-	
-	static volatile bool flagDecoder;
-	static volatile unsigned long timeOld;	
-	
-	private:
-		uint8_t _RX_PIN;
-		uint8_t _TX_PIN;
-		uint8_t _EN_PIN;
-		uint8_t _MODE_PIN;
-		uint32_t _BITRATE;
-		uint32_t _BIT_TIME;
-		uint32_t _HALF_BIT_TIME;
-		uint32_t _ONE_THIRD_BIT_TIME;
-		uint32_t _TWO_THIRD_BIT_TIME;
-		bool _high_speed = false;
-		bool _logic = true;		// 1: Direct; 0: Inverse
-		char _RX_BUFFER[BUFFER_SIZE];
-		uint16_t _BUFFER_INDEX = 0;
-		int _count = 7;
-		
-		uint16_t _timeOut = 100;		// mS	
-		char _rx_char = 0x00;
 		
 	public:
 		PwmTransceiver(uint8_t RX_PIN, uint8_t TX_PIN);
@@ -59,8 +43,6 @@ class PwmTransceiver
 		void print(uint8_t n);
 		void send (bool b);
 		
-		static void isrPwmDecoder();
-		void receive();
 		bool isReceiving();				
 		bool available();
 		String readString();
@@ -69,3 +51,9 @@ class PwmTransceiver
 		byte CRC8(byte data[], byte len);
 
 };
+/*
+extern volatile bool flagDecoder;
+extern volatile unsigned long timeOld;	
+extern void isrPwmDecoder();
+extern void checkMicrosReset();
+*/

@@ -5,52 +5,108 @@
 	J1850-PWM-Transceiver-Library
 */
 
-#include <Arduino.h>
-#include "avr/interrupt.h"
 #include <PwmTransceiver.h>
 
+volatile uint8_t _TX_PIN;
+volatile uint8_t _RX_PIN;
+volatile uint8_t _EN_PIN;
+volatile uint8_t _MODE_PIN;
+volatile uint32_t _BITRATE;
+volatile uint32_t _BIT_TIME;
+volatile uint32_t _HALF_BIT_TIME;
+volatile uint32_t _ONE_THIRD_BIT_TIME;
+volatile uint32_t _TWO_THIRD_BIT_TIME;
+volatile bool _high_speed = false;
+volatile char _RX_BUFFER[BUFFER_SIZE];
+volatile uint16_t _BUFFER_INDEX = 0;
+volatile uint32_t _timeOut = 500;		// uS	
+volatile unsigned long timeOldMicros;
+volatile unsigned long timeOldMillis = 0;
+volatile int _count = 7;
+volatile char _rx_char = 0x00;
+volatile bool _logic = true;		// 1: Direct; 0: Inverse
+
+void isrPwmDecoder()
+{
+	if (digitalReadFast(_RX_PIN)==_logic)
+	{
+		timeOldMicros = micros();
+		timeOldMillis = millis();
+	}
+	else 
+	{
+		bool bit = micros() > timeOldMicros + _HALF_BIT_TIME;
+		_rx_char ^= (-bit ^ _rx_char) & (1 << _count);
+		//Serial.print(bit);
+		if (_count > 0) _count--;
+		else  {
+			_count = 7;
+			_RX_BUFFER[_BUFFER_INDEX] = _rx_char;
+			_BUFFER_INDEX++;
+			_rx_char = 0x00;
+		}
+	}
+}
+
+/*
+void isrPwmDecoder()
+{
+	timeOldMicros = micros();
+	while (digitalReadFast(_RX_PIN) == _logic);
+	bool bit = (micros() - timeOldMicros) > _HALF_BIT_TIME;
+	_rx_char ^= (-bit ^ _rx_char) & (1 << _count);
+	if (_count > 0) _count--;
+	else  {
+		_count = 7;
+		_RX_BUFFER[_BUFFER_INDEX] = _rx_char;
+		_BUFFER_INDEX++;
+		_rx_char = 0x00;
+	}
+	timeOldMillis = millis();
+}
+*/
 PwmTransceiver::PwmTransceiver(uint8_t RX_PIN, uint8_t TX_PIN)
 {
 	_RX_PIN = RX_PIN;
-	pinMode(_RX_PIN, INPUT);
+	pinModeFast(_RX_PIN, INPUT);
 	_TX_PIN = TX_PIN;
-	pinMode(_TX_PIN, OUTPUT);
+	pinModeFast(_TX_PIN, OUTPUT);
 }
 
 PwmTransceiver::PwmTransceiver(uint8_t RX_PIN, uint8_t TX_PIN, uint8_t MODE_PIN, uint8_t EN_PIN)
 {
 	_RX_PIN = RX_PIN;
-	pinMode(_RX_PIN, INPUT);
+	pinModeFast(_RX_PIN, INPUT);
 	_TX_PIN = TX_PIN;
-	pinMode(_TX_PIN, OUTPUT);
+	pinModeFast(_TX_PIN, OUTPUT);
 	_MODE_PIN = MODE_PIN;
-	pinMode(_MODE_PIN, OUTPUT);
+	pinModeFast(_MODE_PIN, OUTPUT);
 	_EN_PIN = EN_PIN;
-	pinMode(_EN_PIN, OUTPUT);
+	pinModeFast(_EN_PIN, OUTPUT);
 }
 
 void PwmTransceiver::setRxPin(uint8_t RX_PIN)
 {
 	_RX_PIN = RX_PIN;
-	pinMode(_RX_PIN, INPUT);
+	pinModeFast(_RX_PIN, INPUT);
 }
 
 void PwmTransceiver::setTxPin(uint8_t TX_PIN)
 {
 	_TX_PIN = TX_PIN;
-	pinMode(_TX_PIN, OUTPUT);
+	pinModeFast(_TX_PIN, OUTPUT);
 }
 
 void PwmTransceiver::setEnablePin(uint8_t EN_PIN)
 {
 	_EN_PIN = EN_PIN;
-	pinMode(_EN_PIN, OUTPUT);
+	pinModeFast(_EN_PIN, OUTPUT);
 }
 
 void PwmTransceiver::setTxRxModePin(uint8_t MODE_PIN)
 {
 	_MODE_PIN = MODE_PIN;
-	pinMode(_MODE_PIN, OUTPUT);
+	pinModeFast(_MODE_PIN, OUTPUT);
 }
 
 void PwmTransceiver::setLogic(bool logic)
@@ -83,32 +139,32 @@ void PwmTransceiver::begin(uint32_t BITRATE)
 	_HALF_BIT_TIME = _BIT_TIME / 2;
 	_ONE_THIRD_BIT_TIME = _BIT_TIME / 3;
 	_TWO_THIRD_BIT_TIME = _BIT_TIME * 2 / 3;
-	if (_logic) attachInterrupt(digitalPinToInterrupt(_RX_PIN), isrPwmDecoder, RISING);
-	else attachInterrupt(digitalPinToInterrupt(_RX_PIN), isrPwmDecoder, FALLING);
-	flagDecoder = false;
+	enableInterrupt(_RX_PIN, isrPwmDecoder, CHANGE);
+	//if (_logic) enableInterrupt(_RX_PIN, isrPwmDecoder, RISING);
+	//else enableInterrupt(_RX_PIN, isrPwmDecoder, FALLING);
 }
 
 void PwmTransceiver::powerDown()
 {
-	digitalWrite(_EN_PIN, LOW);
+	digitalWriteFast(_EN_PIN, LOW);
 	delay(15);
 }
 
 void PwmTransceiver::powerUp()
 {
-	digitalWrite(_EN_PIN, HIGH);
+	digitalWriteFast(_EN_PIN, HIGH);
 	delay(15);
 }
 
 void PwmTransceiver::enableTxMode()
 {
-	digitalWrite(_MODE_PIN, HIGH);
+	digitalWriteFast(_MODE_PIN, HIGH);
 	delayMicroseconds(500);
 }
 
 void PwmTransceiver::enableRxMode()
 {
-	digitalWrite(_MODE_PIN, LOW);
+	digitalWriteFast(_MODE_PIN, LOW);
 	delayMicroseconds(500);
 }
 
@@ -119,12 +175,12 @@ void PwmTransceiver::println(String str)
 }
 
 void PwmTransceiver::print(String str)
-{
+{ 
 	uint16_t size = str.length() + 1;
 	char txt[size];
 	str.toCharArray(txt, size);
 	uint16_t i;
-	for (i = 0; i < size; i++) 
+	for (i = 0; i < size - 1; i++) 
 	{
 		PwmTransceiver::print(txt[i]);
 	}
@@ -166,17 +222,17 @@ void PwmTransceiver::send(bool b)
 		if (b) 
 		{
 			/* Send 66% HIGH, 33% LOW  */
-			digitalWrite(_TX_PIN, HIGH);
+			digitalWriteFast(_TX_PIN, HIGH);
 			delayMicroseconds(_TWO_THIRD_BIT_TIME);
-			digitalWrite(_TX_PIN, LOW);
+			digitalWriteFast(_TX_PIN, LOW);
 			delayMicroseconds(_ONE_THIRD_BIT_TIME);
 		} 
 		else 
 		{
 			/* Send 33% HIGH, 66% LOW  */
-			digitalWrite(_TX_PIN, HIGH);
+			digitalWriteFast(_TX_PIN, HIGH);
 			delayMicroseconds(_ONE_THIRD_BIT_TIME);
-			digitalWrite(_TX_PIN, LOW);
+			digitalWriteFast(_TX_PIN, LOW);
 			delayMicroseconds(_TWO_THIRD_BIT_TIME);
 		}
 	} 
@@ -185,66 +241,20 @@ void PwmTransceiver::send(bool b)
 		if (b) 
 		{
 			/* Send 66% HIGH, 33% LOW  */
-			digitalWrite(_TX_PIN, HIGH);
+			digitalWriteFast(_TX_PIN, HIGH);
 			delay(_TWO_THIRD_BIT_TIME);
-			digitalWrite(_TX_PIN, LOW);
+			digitalWriteFast(_TX_PIN, LOW);
 			delay(_ONE_THIRD_BIT_TIME);
 		} 
 		else 
 		{
 			/* Send 33% HIGH, 66% LOW  */
-			digitalWrite(_TX_PIN, HIGH);
+			digitalWriteFast(_TX_PIN, HIGH);
 			delay(_ONE_THIRD_BIT_TIME);
-			digitalWrite(_TX_PIN, LOW);
+			digitalWriteFast(_TX_PIN, LOW);
 			delay(_TWO_THIRD_BIT_TIME);
 		}
 	}
-}
-
-static void PwmTransceiver::isrPwmDecoder()
-{
-	timeOld = millis();
-	flagDecoder = true;
-}
-
-void PwmTransceiver::receive()
-{
-	if (flagDecoder)
-	{
-		flagDecoder = false;	
-		
-		if (_high_speed) 
-		{
-			delayMicroseconds(_HALF_BIT_TIME);
-		}
-		else 
-		{
-			delay(_HALF_BIT_TIME);
-		}
-		
-		//https://stackoverflow.com/questions/47981/how-do-you-set-clear-and-toggle-a-single-bit
-
-		if (_logic) 
-		{
-			_rx_char ^= (-digitalRead(_RX_PIN) ^ _rx_char) & (1 << _count);
-		}
-		else 
-		{
-			_rx_char ^= (-(!digitalRead(_RX_PIN)) ^ _rx_char) & (1 << _count);
-		}
-		
-		if (_count > 0) 
-		{
-			_count--;
-		}
-		else 
-		{
-			_count = 7;
-			_RX_BUFFER[_BUFFER_INDEX] = _rx_char;
-			_BUFFER_INDEX++;
-			_rx_char = 0x00;
-		}
-    }
 }
 
 bool PwmTransceiver::isReceiving()
@@ -255,22 +265,19 @@ bool PwmTransceiver::isReceiving()
 		_BUFFER_INDEX = BUFFER_SIZE - 1;
 		return false;
 	}
-	// Check if millis has resetted
-	if (millis() < timeOld) timeOld = millis();
 	
 	// Check the lost of synchronicity
-	if (millis() > (timeOld + _timeOut))
+	
+	if (millis() > timeOldMillis + _timeOut)
 	{
 		_rx_char = 0x00;
 		_count = 7;
 		return false;
 	}
-	else
-	{
-		return true;
-	}
+	
+	return true;
 }
-			
+
 bool PwmTransceiver::available()
 {
 	return (_BUFFER_INDEX > 0);

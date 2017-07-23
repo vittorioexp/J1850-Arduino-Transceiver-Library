@@ -4,28 +4,25 @@
 
   J1850-Arduino-Transceiver-Library
 */
+#define EI_ARDUINO_INTERRUPTED_PIN
+#include <EnableInterrupt.h>
 #include <PwmTransceiver.h>
 
-volatile bool PwmTransceiver::flagDecoder;
-volatile unsigned long PwmTransceiver::timeOld;
 const int rx_pin = 3;   // https://goo.gl/nHC95v
 const int tx_pin = 13;
-
-String str;
 
 PwmTransceiver Transceiver(rx_pin, tx_pin);
 
 void setup() {
   Serial.begin(2000000);
-  Serial.println("PwmTransceiver");
-  Transceiver.begin(1200);          // Bits per second
+  Serial.println("PwmTransceiver - LoopTransmitter");
+  //Transceiver.setLogic(false);    // Inverse logic
+  Transceiver.begin(1200);         // Bits per second
+  delay(5000);                      // Receiver needs to prepare
 }
 
 void loop() {
-  if (Serial.available())
-  {
-    str = Serial.readString();
-    Serial.println(str);
-    Transceiver.println(str);
+  if (Serial.available()) {
+    Transceiver.print(Serial.readString());
   }
 }

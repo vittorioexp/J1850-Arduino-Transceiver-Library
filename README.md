@@ -3,6 +3,11 @@ Arduino library which allow to communicate on J1850-PWM mode.
 It works with wire, radio and laser transmissions.
 You just have to choose your bit-rate (lower is better), tx and rx pins.
 It doesn't have either a header nor a parity check. These functions could be implemented at a higher protocol layer.
+
+Required libraries:
+1. DigitalWriteFast (Tested with version 1.0.0, Download: https://github.com/watterott/Arduino-Libs)
+2. EnableInterrupt  (Tested with version 0.9.5, Download: https://github.com/GreyGnome/EnableInterrupt)
+
 This library has been tested with:
 1. Wire connection between two Arduino
 2. Radio connection (multipoint) with FSK modulation (and OOK too), module RTX-MID-868. Datasheet: https://goo.gl/UEv8ii
