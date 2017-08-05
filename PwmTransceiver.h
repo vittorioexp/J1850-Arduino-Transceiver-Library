@@ -6,13 +6,12 @@
 */
 
 #define LIBCALL_ENABLEINTERRUPT
+#define EI_ARDUINO_INTERRUPTED_PIN
 #include <stdint.h>
 #include <Arduino.h>
 #include <avr/io.h>
 #include <avr/interrupt.h>
-#include <TimerOne.h>
 #include <digitalWriteFast.h>
-#define EI_ARDUINO_INTERRUPTED_PIN
 #include <EnableInterrupt.h>
 #define BUFFER_SIZE			64
 
@@ -51,9 +50,3 @@ class PwmTransceiver
 		byte CRC8(byte data[], byte len);
 
 };
-/*
-extern volatile bool flagDecoder;
-extern volatile unsigned long timeOld;	
-extern void isrPwmDecoder();
-extern void checkMicrosReset();
-*/
