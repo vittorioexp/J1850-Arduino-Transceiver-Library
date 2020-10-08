@@ -1,8 +1,8 @@
 # J1850-Arduino-Transceiver-Library
-Arduino library which allow to communicate on J1850-PWM mode.
+Arduino library which allow to decode characters on J1850-PWM mode.
 It works with wire, radio and laser transmissions.
 You just have to choose your bit-rate (lower is better), tx and rx pins.
-It doesn't have either a header nor a parity check. These functions could be implemented at a higher protocol layer.
+It doesn't have either a header nor a parity check. These functions could be implemented at a higher protocol layer. It doesn't detect SOF (start of frame) and EOF (end of frame) yet.
 
 Required libraries:
 1. DigitalWriteFast (Tested with version 1.0.0, Download: https://github.com/watterott/Arduino-Libs)
